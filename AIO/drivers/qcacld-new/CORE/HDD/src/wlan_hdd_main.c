@@ -64,6 +64,8 @@
 #ifdef WLAN_FEATURE_LPSS
 #include <vos_utils.h>
 #endif
+#include <linux/amlogic/aml_sd.h>
+#include <linux/amlogic/wifi_dt.h>
 #include <linux/etherdevice.h>
 #include <linux/firmware.h>
 #include <wcnss_api.h>
@@ -18656,7 +18658,21 @@ EXPORT_SYMBOL(hdd_driver_init);
 #ifdef MODULE
 static int __init hdd_module_init ( void)
 {
-   return hdd_driver_init();
+   int ret;
+
+   /*
+    * Power the shared WiFi/BT rail and register WIFI_BIT in the
+    * amlogic_wireless coexistence refcount before touching SDIO.
+    * Without this, usb_power stays 0 and a later BT power on runs
+    * sdio_reinit() underneath the live WiFi bus.
+    */
+   extern_wifi_set_enable(1);
+   sdio_reinit();
+
+   ret = hdd_driver_init();
+   if (ret)
+      extern_wifi_set_enable(0);
+   return ret;
 }
 #else /* #ifdef MODULE */
 static int __init hdd_module_init ( void)
@@ -18893,6 +18909,7 @@ EXPORT_SYMBOL(hdd_driver_exit);
 static void __exit hdd_module_exit(void)
 {
    hdd_driver_exit();
+   extern_wifi_set_enable(0);
 }
 
 #ifdef MODULE
