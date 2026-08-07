@@ -276,6 +276,9 @@ endif
 #Enable OS specific IRQ abstraction
 CONFIG_ATH_SUPPORT_SHARED_IRQ := 1
 
+#Enable scan MAC address randomization
+CFG80211_SCAN_RANDOM_MAC_ADDR := y
+
 #Enable message based HIF instead of RAW access in BMI
 ifeq ($(CONFIG_QCA_WIFI_SDIO), 1)
 CONFIG_HIF_MESSAGE_BASED := 0
@@ -1119,6 +1122,10 @@ CDEFINES :=	-DANI_LITTLE_BYTE_ENDIAN \
 
 ifeq ($(CFG80211_CONNECT_BSS), y)
 CDEFINES += -DCFG80211_CONNECT_BSS
+endif
+
+ifeq ($(CFG80211_SCAN_RANDOM_MAC_ADDR), y)
+CDEFINES += -DCFG80211_SCAN_RANDOM_MAC_ADDR
 endif
 
 ifeq ($(CONFIG_WLAN_POWER_DEBUGFS), y)
